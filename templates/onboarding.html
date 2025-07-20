@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Welcome - CBT Companion{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg text-center">
+        <h2 class="text-3xl font-bold mb-2 text-slate-800 dark:text-slate-100">Welcome!</h2>
+        
+        <!-- ACCESSIBILITY: Added an ID to this paragraph to act as a visible label -->
+        <p id="name-prompt" class="text-slate-600 dark:text-slate-400 mb-6">
+            Let's get started. What name would you like me to call you?
+        </p>
+        
+        <form method="POST" action="{{ url_for('onboarding') }}" class="space-y-6">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-4">
+                <!-- ACCESSIBILITY: Added a screen-reader only label for clarity -->
+                <label for="display_name" class="sr-only">What name would you like me to call you?</label>
+                
+                <!-- The input field now uses aria-labelledby to link to the visible prompt -->
+                {{ form.display_name(id="display_name", class="block w-full p-2.5 bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-slate-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500", placeholder="Enter your preferred name", **{'aria-labelledby': 'name-prompt'}) }}
+                
+                {% if form.display_name.errors %}
+                    <!-- ACCESSIBILITY: Added aria-live to announce errors -->
+                    <ul class="text-red-500 text-xs mt-1 text-left" aria-live="assertive">
+                    {% for error in form.display_name.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="pt-4">
+                {{ form.submit(value='Continue', class="w-full text-white bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:outline-none focus:ring-teal-300 font-medium rounded-lg text-sm px-5 py-3 text-center dark:bg-teal-600 dark:hover:bg-teal-700 dark:focus:ring-teal-800") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

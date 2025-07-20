@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CBT Companion{% endblock %}</title>
+    
+    <!-- MODIFIED: Added the 'typography' plugin for better text styling on pages like the privacy policy -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    
+    <script>
+      tailwind.config = { darkMode: 'class' }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        html { font-family: 'Inter', sans-serif; }
+    </style>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 h-screen flex flex-col">
+
+    <header class="bg-white dark:bg-slate-800 shadow p-4 z-10" role="banner">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="{{ url_for('home') }}" class="text-2xl font-bold text-teal-600 dark:text-teal-400">CBT Companion</a>
+            <div class="text-center">
+                <button id="theme-toggle" type="button" class="text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-200 dark:focus:ring-slate-700 rounded-lg text-sm p-2.5">
+                    <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                </button>
+                <span id="theme-toggle-label" class="block text-xs text-slate-500 dark:text-slate-400"></span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-4 flex flex-col" role="main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="space-y-2 mb-6" aria-live="polite">
+                    {% for category, message in messages %}
+                        <li class="p-3 rounded-lg text-center font-medium
+                            {% if category == 'success' %} bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                            {% elif category == 'danger' %} bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                            {% elif category == 'warning' %} bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200
+                            {% else %} bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200
+                            {% endif %}">
+                            {{ message }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if request.endpoint != 'chat' %}
+    <footer class="text-center py-4 text-slate-600 dark:text-slate-400 text-sm" role="contentinfo">
+        <p>&copy; {{ current_year or "2025" }} CBT Companion. All rights reserved.</p>
+        <!-- ADDED: Link to the new Privacy Policy page -->
+        <a href="{{ url_for('privacy_policy') }}" class="hover:underline text-teal-600 dark:text-teal-400">Privacy Policy</a>
+    </footer>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+            var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+            var themeToggleButton = document.getElementById('theme-toggle');
+            var themeToggleLabel = document.getElementById('theme-toggle-label');
+            function setTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    themeToggleLightIcon.classList.remove('hidden');
+                    themeToggleDarkIcon.classList.add('hidden');
+                    localStorage.setItem('color-theme', 'dark');
+                    themeToggleLabel.textContent = 'Theme: Dark';
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    themeToggleLightIcon.classList.add('hidden');
+                    themeToggleDarkIcon.classList.remove('hidden');
+                    localStorage.setItem('color-theme', 'light');
+                    themeToggleLabel.textContent = 'Theme: Light';
+                }
+            }
+            var savedTheme = localStorage.getItem('color-theme');
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) { setTheme(true); }
+            else { setTheme(false); }
+            themeToggleButton.addEventListener('click', function() {
+                var isDarkMode = document.documentElement.classList.contains('dark');
+                setTheme(!isDarkMode);
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

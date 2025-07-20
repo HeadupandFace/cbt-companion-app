@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CBT Companion - Your Support Assistant</title>
+    <!-- Tailwind CSS CDN directly for this page, or ensure it's loaded via base.html -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Your custom styles for this page, if any, or consolidate into main.css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 p-4">
+    <div class="container max-w-md mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-indigo-700 dark:text-indigo-300 mb-2">CBT Support Assistant</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400">Your personal guide for cognitive behavioral therapy insights.</p>
+        </header>
+
+        <main>
+            <section id="intro-section" role="region" aria-labelledby="intro-heading">
+                <h2 id="intro-heading" class="sr-only">Welcome and Setup</h2>
+                <p class="text-xl mb-6 text-gray-700 dark:text-gray-300">Hello! I'm your CBT support assistant. What's your name?</p>
+                <form id="name-form" action="{{ url_for('register') }}" method="POST" class="space-y-6">
+                    <div class="form-group">
+                        <label for="username" class="sr-only">Your Name:</label>
+                        <input type="text" id="username" name="username" required
+                               placeholder="Type your name here..." autocomplete="name"
+                               aria-required="true"
+                               class="w-full p-3 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="sr-only">Password:</label>
+                        <input type="password" id="password" name="password" required
+                               placeholder="Choose a password..."
+                               class="w-full p-3 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+
+                    <div class="radio-group mb-6" role="radiogroup" aria-labelledby="assistant-choice-heading">
+                        <p id="assistant-choice-heading" class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">Who would you like to talk to?</p>
+                        <div class="flex justify-center space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="preferred_assistant" value="Clara" checked aria-label="Choose Clara, a female assistant" class="form-radio h-5 w-5 text-indigo-600"/>
+                                <span class="ml-2 text-gray-700 dark:text-gray-300">Clara (Female)</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="preferred_assistant" value="Alex" aria-label="Choose Alex, a male assistant" class="form-radio h-5 w-5 text-indigo-600"/>
+                                <span class="ml-2 text-gray-700 dark:text-gray-300">Alex (Male)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-md shadow-lg transition-colors duration-200">Start Your Session</button>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-4">Already have an account? <a href="{{ url_for('login') }}" class="text-indigo-600 hover:underline dark:text-indigo-400">Login here</a>.</p>
+                </form>
+            </section>
+        </main>
+
+        <footer class="mt-8 text-gray-600 dark:text-gray-400 text-sm">
+            <p>&copy; 2025 CBT Companion. All rights reserved. <br/> This tool is for support and information only, not a substitute for professional medical advice or therapy.</p>
+            <nav aria-label="Footer Links">
+            </nav>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}Getting Started - CBT Companion{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center flex-grow">
+    <div class="w-full max-w-lg mx-auto bg-white dark:bg-slate-800 p-8 rounded-lg shadow-lg">
+        <div id="conversation-container" class="space-y-4">
+            <!-- Conversation will be built here by JavaScript -->
+        </div>
+        <div id="user-options" class="mt-6 space-x-4 text-center">
+            <!-- User response buttons will appear here -->
+        </div>
+        <div id="loading-indicator" class="hidden text-center mt-4">
+            <p class="text-teal-500">Saving your preferences...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Get references to the HTML elements we'll be working with ---
+    const conversationContainer = document.getElementById('conversation-container');
+    const userOptionsContainer = document.getElementById('user-options');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    
+    // --- FIXED: Safely get the CSRF token to prevent script error ---
+    const csrfElement = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfElement ? csrfElement.getAttribute('content') : '';
+
+    if (!csrfToken) {
+        console.warn("CSRF token meta tag not found in base.html. The 'save' operation will likely fail. Please add <meta name=\"csrf-token\" content=\"{{ csrf_token() }}\"> to your base template's <head> section.");
+    }
+
+    // --- Object to hold the user's choices ---
+    let userConsents = {
+        consent_processing: null,
+        consent_analytics: null
+    };
+
+    // --- The conversational script the AI will follow ---
+    const script = [
+        {
+            sender: 'ai',
+            text: "Hi there! I'm your CBT Champion. Before we start, can I quickly explain how I work to make sure you're comfortable?",
+            options: [{ text: "Yes, please", action: () => advanceScript() }]
+        },
+        {
+            sender: 'ai',
+            text: "Great. To be most helpful, I need to remember our conversations. This lets you track your progress and pick up where you left off. Your journal and chats are private to you and stored securely. Is that okay?",
+            options: [
+                { text: "That's okay", action: () => recordConsent('processing', true) },
+                { text: "No thanks", action: () => recordConsent('processing', false) }
+            ]
+        },
+        {
+            sender: 'ai',
+            text: "Got it. My developers also use completely anonymised conversations to help me learn. This data has all personal details removed and can never be linked back to you. Would you be happy to help me improve in this way?",
+            options: [
+                { text: "Yes, I'll help", action: () => recordConsent('analytics', true) },
+                { text: "No, thank you", action: () => recordConsent('analytics', false) }
+            ]
+        },
+        {
+            sender: 'ai',
+            text: "Thanks. Finally, for your safety, if you say anything that suggests you might be in immediate danger, I'm programmed to display emergency contact numbers. This is a safety feature to point you towards immediate help.",
+            options: [{ text: "I understand", action: () => finishOnboarding() }]
+        }
+    ];
+
+    let currentStep = 0;
+
+    // --- Function to add a new message bubble to the screen ---
+    function addMessage(sender, text) {
+        const messageDiv = document.createElement('div');
+        const contentDiv = document.createElement('div');
+        const senderClass = sender === 'ai' 
+            ? 'bg-gray-200 dark:bg-gray-600 mr-auto' 
+            : 'bg-teal-100 dark:bg-teal-700 ml-auto';
+        
+        messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : ''}`;
+        contentDiv.className = `p-3 rounded-lg max-w-[85%] mb-2 ${senderClass} text-slate-800 dark:text-slate-100`;
+        contentDiv.textContent = text;
+        
+        messageDiv.appendChild(contentDiv);
+        conversationContainer.appendChild(messageDiv);
+        // Scroll to the bottom to show the latest message
+        conversationContainer.scrollTop = conversationContainer.scrollHeight;
+    }
+
+    // --- Function to display the user's choice buttons ---
+    function showOptions(options) {
+        userOptionsContainer.innerHTML = ''; // Clear old buttons
+        options.forEach(opt => {
+            const button = document.createElement('button');
+            button.textContent = opt.text;
+            button.className = 'px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-md shadow-md transition-transform transform hover:scale-105';
+            button.onclick = () => {
+                addMessage('user', opt.text); // Show the user's choice as a message
+                opt.action(); // Run the function associated with the button
+            };
+            userOptionsContainer.appendChild(button);
+        });
+    }
+
+    // --- Function to move to the next step in the conversation ---
+    function advanceScript() {
+        if (currentStep < script.length) {
+            const step = script[currentStep];
+            addMessage(step.sender, step.text);
+            showOptions(step.options);
+            currentStep++;
+        }
+    }
+
+    // --- Function to save the user's consent choice and move on ---
+    function recordConsent(type, value) {
+        if (type === 'processing') {
+            userConsents.consent_processing = value;
+        } else if (type === 'analytics') {
+            userConsents.consent_analytics = value;
+        }
+        advanceScript(); // Move to the next question
+    }
+
+    // --- Function to send the final data to the backend ---
+    async function finishOnboarding() {
+        userOptionsContainer.classList.add('hidden'); // Hide buttons
+        loadingIndicator.classList.remove('hidden'); // Show "Saving..."
+
+        try {
+            // Send the data to the new API endpoint we created in app.py
+            const response = await fetch("{{ url_for('save_consent') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    consent_processing: userConsents.consent_processing,
+                    consent_analytics: userConsents.consent_analytics
+                })
+            });
+
+            if (!response.ok) {
+                // Handle any server errors
+                throw new Error('Failed to save preferences.');
+            }
+
+            const data = await response.json();
+            // The backend tells us where to go next
+            window.location.href = data.next_url;
+
+        } catch (error) {
+            console.error('Error:', error);
+            addMessage('ai', "Sorry, there was a problem saving your choices. Please try refreshing the page.");
+            loadingIndicator.classList.add('hidden');
+        }
+    }
+
+    // --- Start the conversation when the page loads ---
+    advanceScript();
+});
+</script>
+{% endblock %}

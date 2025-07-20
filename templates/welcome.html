@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Welcome - CBT Companion{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center text-center flex-grow p-4">
+    
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-6 rounded-lg shadow-md max-w-3xl mx-auto mb-8 text-left">
+        <h2 class="font-bold text-xl mb-2">Important Notice: This is an AI-Powered Tool</h2>
+        <p class="mb-2">
+            Welcome to CBT Companion. Please be aware that this is an AI assistant designed to provide support based on Cognitive Behavioural Therapy principles.
+        </p>
+        <p class="mb-4">
+            It is <strong>not a substitute</strong> for professional medical advice, diagnosis, or treatment from a qualified therapist. It can be a helpful tool for support between therapy sessions or while you are seeking professional help.
+        </p>
+        <p class="font-semibold">
+            If you are in crisis, please contact a professional immediately. You can call the Samaritans at any time on 116 123.
+        </p>
+    </div>
+
+    <div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-teal-600 dark:text-teal-400 mb-4">
+            Welcome to Your CBT Companion
+        </h1>
+        <p class="text-lg sm:text-xl text-slate-700 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
+            A safe space to explore your thoughts and feelings using Cognitive Behavioral Therapy principles.
+        </p>
+        <div class="space-y-4 sm:space-y-0 sm:space-x-4">
+            <a href="{{ url_for('login') }}" class="inline-block w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-md shadow-lg text-lg transition-transform transform hover:scale-105">
+                Login
+            </a>
+            <a href="{{ url_for('register') }}" class="inline-block w-full sm:w-auto bg-slate-200 hover:bg-slate-300 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-bold py-3 px-8 rounded-md shadow-lg text-lg transition-transform transform hover:scale-105">
+                New User
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

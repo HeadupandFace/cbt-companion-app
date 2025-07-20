@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Foundation Session{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg">
+        <h2 class="text-3xl font-bold text-center mb-2 text-slate-800 dark:text-slate-100">Your Foundation Session</h2>
+        <p class="text-slate-600 dark:text-slate-400 text-center mb-6">
+            Thank you for taking this important first step. Answering these questions helps us understand how best to support you. Please be as open as you feel comfortable.
+        </p>
+        <form method="POST" action="{{ url_for('onboarding_assessment') }}" class="space-y-6">
+            {{ form.hidden_tag() }}
+
+            {# This is a helper macro to render form fields with Tailwind CSS consistently #}
+            {% macro render_tailwind_field(field, placeholder_text) %}
+                <div class="mb-4">
+                    <label for="{{ field.id }}" class="block mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">{{ field.label.text }}</label>
+                    {{ field(class="block w-full p-2.5 bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-slate-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500", placeholder=placeholder_text, **field.render_kw) }}
+                    {% if field.errors %}
+                        <ul class="text-red-500 text-xs mt-1">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endmacro %}
+
+            {{ render_tailwind_field(form.primary_issues, "e.g., 'I've been feeling very anxious at work' or 'I'm struggling with low motivation.'") }}
+            {{ render_tailwind_field(form.daily_impact, "e.g., 'I've started avoiding social events' or 'I'm finding it hard to concentrate.'") }}
+            {{ render_tailwind_field(form.therapy_goals, "e.g., 'I'd like to feel more confident' or 'I want to learn how to manage my anxiety.'") }}
+            {{ render_tailwind_field(form.coping_strategies, "e.g., 'I try to go for a walk, but sometimes I just stay in bed.'") }}
+
+            <hr class="border-slate-200 dark:border-slate-700 my-6">
+
+            <div class="p-4 border-2 border-red-400/50 rounded-lg bg-red-50 dark:bg-red-900/20">
+                <p class="font-semibold text-red-800 dark:text-red-300">Important Safety Question</p>
+                <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">{{ form.self_harm_thoughts.label.text }}</p>
+                <div class="flex items-center space-x-6">
+                    {% for subfield in form.self_harm_thoughts %}
+                    <div class="flex items-center">
+                        {{ subfield(class="w-4 h-4 text-teal-600 bg-slate-100 border-slate-300 focus:ring-teal-500 dark:focus:ring-teal-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600") }}
+                        <label for="{{ subfield.id }}" class="ml-2 text-sm font-medium text-slate-900 dark:text-slate-300">{{ subfield.label.text }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                 {% if form.self_harm_thoughts.errors %}
+                    <ul class="text-red-500 text-xs mt-2">
+                    {% for error in form.self_harm_thoughts.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="pt-4">
+                {{ form.submit(class="w-full text-white bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:outline-none focus:ring-teal-300 font-medium rounded-lg text-sm px-5 py-3 text-center dark:bg-teal-600 dark:hover:bg-teal-700 dark:focus:ring-teal-800") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

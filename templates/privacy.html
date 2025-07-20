@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy - CBT Companion{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white dark:bg-slate-800 p-6 md:p-10 rounded-xl shadow-lg">
+    <article class="prose dark:prose-invert max-w-none">
+        <h1 class="text-3xl font-bold text-center mb-4 text-slate-800 dark:text-slate-100">Privacy Policy</h1>
+        <p class="text-center text-slate-500 dark:text-slate-400">Last Updated: 20th July 2025</p>
+
+        <div class="mt-8">
+            <h2 class="text-2xl font-semibold">Our Commitment to Your Privacy</h2>
+            <p>We are committed to protecting your privacy and handling your data in an open and transparent manner. This policy explains what information we collect from you, how we use it, and what rights you have.</p>
+        </div>
+
+        <hr class="my-6 border-slate-200 dark:border-slate-700">
+
+        <!-- Section 1: What We Collect -->
+        <div>
+            <h3 class="text-xl font-semibold">1. What Information We Collect</h3>
+            <div class="p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 my-4">
+                <h4 class="font-bold text-teal-800 dark:text-teal-300">In Simple Terms:</h4>
+                <p class="text-teal-700 dark:text-teal-400">We collect the information you provide when you sign up and use the app. This includes your email and username, the name you'd like us to call you, your chat conversations, and your answers to the onboarding questions and diary entries.</p>
+            </div>
+            <h4 class="font-semibold mt-4">The Detail:</h4>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Account Information:</strong> When you register, we collect your username, email address, and password (which is securely hashed and never stored in plain text).</li>
+                <li><strong>Profile Information:</strong> We store your preferred display name and your choice of AI assistant (Clara or Alex).</li>
+                <li><strong>Onboarding and Assessment Data:</strong> We collect and store your answers to the foundation session questions, including your stated difficulties, goals, and coping strategies.</li>
+                <li><strong>Conversation History:</strong> We store your chat messages with your AI companion to provide a continuous experience and allow you to review your progress.</li>
+                <li><strong>Diary Entries:</strong> We store the text and date of any diary entries you create.</li>
+                <li><strong>Consent Choices:</strong> We record your choices regarding consent for data processing and for the use of your anonymised data to improve our service.</li>
+            </ul>
+        </div>
+
+        <hr class="my-6 border-slate-200 dark:border-slate-700">
+
+        <!-- Section 2: How We Use It -->
+        <div>
+            <h3 class="text-xl font-semibold">2. How We Use Your Information</h3>
+            <div class="p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 my-4">
+                <h4 class="font-bold text-teal-800 dark:text-teal-300">In Simple Terms:</h4>
+                <p class="text-teal-700 dark:text-teal-400">We use your information to make the app work for you—to remember your conversations, personalise the advice, and help you track your progress. If you agree, we also use completely anonymised data to make the AI better for everyone.</p>
+            </div>
+            <h4 class="font-semibold mt-4">The Detail:</h4>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>To Provide the Service:</strong> Your data is used to create and maintain your account, provide you with access to your chat history and diary, and personalise the AI's responses based on your stated goals and past conversations.</li>
+                <li><strong>For Clinical Safety:</strong> We automatically scan messages for keywords indicating a potential immediate crisis. This is a safety feature designed to display emergency contact information. This process is automated and does not involve a human reading your messages in real-time.</li>
+                <li><strong>To Improve Our Service (with your consent):</strong> If you opt-in, we may use a completely anonymised version of your conversation data to train and improve our AI models. All personally identifiable information (like names, emails, or specific places you mention) is removed before this happens. You can opt-out of this at any time.</li>
+            </ul>
+        </div>
+
+        <hr class="my-6 border-slate-200 dark:border-slate-700">
+
+        <!-- Section 3: Who We Share It With -->
+        <div>
+            <h3 class="text-xl font-semibold">3. Who We Share Your Information With</h3>
+            <div class="p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 my-4">
+                <h4 class="font-bold text-teal-800 dark:text-teal-300">In Simple Terms:</h4>
+                <p class="text-teal-700 dark:text-teal-400">We don't sell your data. We use trusted technology partners to help run the app, such as Google for storing the data and providing the AI. They are bound by strict confidentiality and security agreements.</p>
+            </div>
+            <h4 class="font-semibold mt-4">The Detail:</h4>
+            <p>We use a number of third-party services to provide the CBT Companion service. These are our sub-processors:</p>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Google Cloud Platform (Firebase/Firestore):</strong> We use Google's secure Firebase services to host our application and store all user data, including account information, chat history, and diary entries. All data is encrypted at rest and in transit.</li>
+                <li><strong>Google AI Platform (Gemini):</strong> Your chat messages are sent to Google's Gemini models to generate the AI's responses. The conversations are not used by Google to train their general models.</li>
+            </ul>
+        </div>
+        
+        <hr class="my-6 border-slate-200 dark:border-slate-700">
+
+        <!-- Section 4: Your Rights -->
+        <div>
+            <h3 class="text-xl font-semibold">4. Your Rights and Choices</h3>
+            <div class="p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 my-4">
+                <h4 class="font-bold text-teal-800 dark:text-teal-300">In Simple Terms:</h4>
+                <p class="text-teal-700 dark:text-teal-400">You are in control of your data. You can ask for a copy of it, ask us to correct it, or ask us to delete your account and all associated information.</p>
+            </div>
+            <h4 class="font-semibold mt-4">The Detail:</h4>
+            <p>Under UK GDPR, you have several rights regarding your personal data. To exercise any of these rights, please contact us using the details below.</p>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Right of Access:</strong> You can request a copy of the personal data we hold about you.</li>
+                <li><strong>Right to Rectification:</strong> You can request that we correct any inaccurate information.</li>
+                <li><strong>Right to Erasure (Right to be Forgotten):</strong> You can request that we delete your account and all associated personal data.</li>
+                <li><strong>Right to Withdraw Consent:</strong> You can withdraw your consent for us using your anonymised data for service improvement at any time.</li>
+            </ul>
+        </div>
+
+        <hr class="my-6 border-slate-200 dark:border-slate-700">
+
+        <!-- Section 5: Security & Retention -->
+        <div>
+            <h3 class="text-xl font-semibold">5. Data Security & Retention</h3>
+            <div class="p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 my-4">
+                <h4 class="font-bold text-teal-800 dark:text-teal-300">In Simple Terms:</h4>
+                <p class="text-teal-700 dark:text-teal-400">We take security very seriously. We keep your data for as long as you have an active account. If you delete your account, we will permanently delete your data.</p>
+            </div>
+            <h4 class="font-semibold mt-4">The Detail:</h4>
+            <p>We implement robust technical and organisational measures to protect your data from unauthorised access, alteration, or destruction. This includes encryption, access controls, and secure development practices. We will retain your personal data for as long as your account is active. Upon receiving a request for account deletion, we will permanently erase your data from our systems within 30 days.</p>
+        </div>
+
+        <hr class="my-6 border-slate-200 dark:border-slate-700">
+
+        <!-- Section 6: Contact -->
+        <div>
+            <h3 class="text-xl font-semibold">6. Contact Us</h3>
+            <p>If you have any questions about this Privacy Policy or wish to exercise your rights, please contact us at:</p>
+            <div class="mt-2 pl-5">
+                <p class="font-semibold">CBT Companion App</p>
+                <p>Data Privacy Contact</p>
+                <p class="font-mono">[Your Email Address for Privacy Queries]</p>
+            </div>
+            <p class="mt-4">You also have the right to lodge a complaint with the Information Commissioner's Office (ICO), the UK's data protection regulator.</p>
+        </div>
+
+    </article>
+</div>
+{% endblock %}
