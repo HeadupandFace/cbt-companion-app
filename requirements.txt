@@ -1,0 +1,10 @@
+Flask
+Flask-Login
+Flask-WTF
+python-dotenv
+requests
+google-cloud-texttospeech
+firebase-admin
+bleach
+Flask-Talisman
+gunicorn
