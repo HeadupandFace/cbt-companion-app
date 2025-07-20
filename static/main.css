@@ -1,0 +1,206 @@
+/* General Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Base body styling. Tailwind handles most of this, but keeping for custom overrides. */
+body {
+    line-height: 1.6; /* Improve readability */
+}
+
+/* Main container for the application content (used on login, register, onboarding) */
+.container {
+    width: 90%; /* Responsive width */
+    max-width: 600px; /* Maximum width for larger screens */
+    background: #fff; /* White background for content */
+    padding: 30px; /* Internal spacing */
+    border-radius: 12px; /* Slightly rounded corners */
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+    box-sizing: border-box;
+    display: flex; /* Use flexbox for internal layout */
+    flex-direction: column; /* Stack children vertically */
+    gap: 20px; /* Space between major sections */
+}
+
+/* Header styling (for pages that don't extend base.html, like home/onboarding if they are standalone) */
+header {
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+h1 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 2em; /* Larger heading */
+}
+
+.tagline {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 0;
+}
+
+/* Section styling */
+section {
+    padding: 15px 0;
+}
+
+/* Form group for labels and inputs */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* Label and paragraph text color */
+label, p {
+    margin-bottom: 8px;
+    display: block; /* Ensures labels take full width */
+}
+
+/* Textarea and text input field styling */
+textarea, input[type="text"], input[type="password"] {
+    width: 100%; /* Full width of its container */
+    height: 40px; /* Standard height for inputs */
+    padding: 10px 12px; /* More padding */
+    font-size: 16px;
+    border-radius: 8px; /* Rounded input fields */
+    border: 1px solid #ccc; /* Subtle border */
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+textarea:focus, input[type="text"]:focus, input[type="password"]:focus {
+    border-color: #007BFF; /* Highlight on focus */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Soft glow on focus */
+    outline: none; /* Remove default outline */
+}
+
+/* Specific styling for the textarea */
+textarea {
+    height: 120px; /* Taller for multi-line input */
+    resize: vertical; /* Allow only vertical resizing */
+}
+
+/* Help text for inputs */
+.help-text {
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Button styling */
+.button {
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    color: white; /* White text on button */
+    cursor: pointer; /* Pointer on hover */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    width: 100%; /* Full width button by default */
+    box-sizing: border-box; /* Include padding/border in width */
+    margin-top: 10px; /* Space above buttons */
+}
+
+.button-primary {
+    background-color: #007BFF; /* Primary blue color */
+}
+
+.button-primary:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+}
+
+.button-secondary {
+    background-color: #6c757d; /* Gray color for secondary buttons */
+    margin-top: 10px;
+}
+
+.button-secondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+}
+
+/* Response display box styling */
+.conversation-area {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #e6f0ff; /* Light blue background for responses */
+    border-radius: 10px;
+    font-style: italic; /* Italicize response text */
+    min-height: 100px; /* A bit more space */
+    white-space: pre-wrap; /* Preserves whitespace and line breaks from the response */
+    max-height: 400px; /* Max height before scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #cce0ff; /* Subtle border to define the box */
+    word-wrap: break-word; /* Prevents long words from overflowing */
+}
+
+/* Radio button group styling */
+.radio-group {
+    margin-bottom: 20px;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column; /* Stack radio options vertically */
+    gap: 10px; /* Space between radio options */
+}
+
+.radio-group p {
+    margin-bottom: 5px; /* Adjust spacing for the heading */
+    font-weight: bold;
+}
+
+.radio-group label {
+    cursor: pointer;
+    display: flex; /* Use flex for alignment of radio button and text */
+    align-items: center; /* Vertically center */
+    margin-bottom: 0; /* Remove default margin */
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 8px; /* Space between radio button and its label text */
+    width: auto; /* Override 100% width for general inputs */
+    height: auto; /* Override height for general inputs */
+    margin-bottom: 0;
+}
+
+/* Footer styling */
+footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    font-size: 0.85em;
+    color: #666;
+    margin-top: auto; /* Pushes footer to the bottom if container is flex column */
+}
+
+footer p {
+    margin-bottom: 10px;
+    display: block;
+}
+
+footer nav a {
+    color: #007BFF;
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+footer nav a:hover {
+    text-decoration: underline;
+}
+
+/* Utility class for screen readers only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
