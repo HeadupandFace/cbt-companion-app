@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Register - CBT Companion{% endblock %}
+{% block title %}Login - CBT Companion{% endblock %}
 
 {% block content %}
 <div class="flex items-center justify-center flex-grow">
     <div class="w-full max-w-sm mx-auto bg-white dark:bg-slate-800 p-8 rounded-lg shadow-lg text-center">
-        <h1 class="text-3xl font-bold text-teal-600 dark:text-teal-400 mb-6">Register</h1>
-        <form id="registerForm" class="space-y-4" method="POST" novalidate>
+        <h1 class="text-3xl font-bold text-teal-600 dark:text-teal-400 mb-6">Login</h1>
+        <form id="loginForm" class="space-y-4" method="POST" novalidate>
             {{ form.hidden_tag() }}
 
             <div class="mb-4">
@@ -15,16 +15,16 @@
 
             <div class="mb-4">
                 <label for="password" class="sr-only">Password</label>
-                {{ form.password(id="password", class_="w-full p-3 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500", placeholder="Password", autocomplete="new-password") }}
+                {{ form.password(id="password", class_="w-full p-3 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500", placeholder="Password", autocomplete="current-password") }}
             </div>
 
-            <button type="submit" id="registerButton" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-md shadow-lg">Register</button>
+            <button type="submit" id="loginButton" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-md shadow-lg">Login</button>
 
-            <div id="loadingIndicator" class="hidden text-center text-teal-500 mt-2">Creating account...</div>
+            <div id="loadingIndicator" class="hidden text-center text-teal-500 mt-2">Logging in...</div>
 
             <div id="firebaseError" class="text-red-500 text-sm mt-2" aria-live="assertive"></div>
         </form>
-        <p class="text-sm text-slate-600 dark:text-slate-400 mt-4">Already have an account? <a href="{{ url_for('login') }}" class="text-teal-600 hover:underline dark:text-teal-400">Login here</a>.</p>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mt-4">Don't have an account? <a href="{{ url_for('register') }}" class="text-teal-600 hover:underline dark:text-teal-400">Register here</a>.</p>
     </div>
 </div>
 {% endblock %}
@@ -45,27 +45,27 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    document.getElementById('registerForm').addEventListener('submit', async function(event) {
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
         event.preventDefault();
 
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
-        const registerButton = document.getElementById('registerButton');
+        const loginButton = document.getElementById('loginButton');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const firebaseErrorDiv = document.getElementById('firebaseError');
 
         firebaseErrorDiv.textContent = '';
-        registerButton.disabled = true;
+        loginButton.disabled = true;
         loadingIndicator.classList.remove('hidden');
 
         try {
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
             const user = userCredential.user;
             const idToken = await user.getIdToken();
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-            const response = await fetch("{{ url_for('register') }}", {
+            const response = await fetch("{{ url_for('login') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -78,26 +78,25 @@
             if (response.ok) {
                 window.location.href = data.redirect || "{{ url_for('chat') }}";
             } else {
-                firebaseErrorDiv.textContent = data.error || 'Registration failed on server.';
+                firebaseErrorDiv.textContent = data.error || 'Login failed on server.';
             }
         } catch (error) {
             let errorMessage = "An unexpected error occurred.";
             switch (error.code) {
-                case 'auth/email-already-in-use':
-                    errorMessage = 'That email address is already registered.';
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential':
+                    errorMessage = 'Invalid email or password.';
                     break;
                 case 'auth/invalid-email':
                     errorMessage = 'Please enter a valid email format.';
-                    break;
-                case 'auth/weak-password':
-                    errorMessage = 'Password should be at least 6 characters.';
                     break;
                 default:
                     errorMessage = error.message;
             }
             firebaseErrorDiv.textContent = errorMessage;
         } finally {
-            registerButton.disabled = false;
+            loginButton.disabled = false;
             loadingIndicator.classList.add('hidden');
         }
     });
