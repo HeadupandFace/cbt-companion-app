@@ -1,10 +1,11 @@
 Flask
 Flask-Login
 Flask-WTF
+gunicorn
+gevent
+firebase-admin
 python-dotenv
 requests
-google-cloud-texttospeech
-firebase-admin
 bleach
 Flask-Talisman
-gunicorn
+google-cloud-texttospeech
