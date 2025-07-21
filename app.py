@@ -66,9 +66,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# --- REMOVED: The @before_request hook is removed in favor of a more direct fix. ---
-# Using `force=True` in each route is more reliable across different server environments.
-
 # --- Clinical Safety: Crisis Keyword Definitions ---
 CRISIS_KEYWORDS = [
     'kill myself', 'suicide', 'overdose', 'end my life', 'want to die',
