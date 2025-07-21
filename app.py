@@ -41,13 +41,14 @@ csp = {
     'script-src': [
         '\'self\'',
         'cdn.tailwindcss.com',
-        'www.gstatic.com' # Required for Firebase
+        'www.gstatic.com', # Required for Firebase
+        '\'unsafe-inline\''  # ADDED: Allows inline scripts on your pages to run
     ],
     'style-src': [
         '\'self\'',
         'cdn.tailwindcss.com',
         'fonts.googleapis.com',
-        '\'unsafe-inline\''  # ADDED: Allows inline styles from your base.html
+        '\'unsafe-inline\''  # Allows inline styles from your base.html
     ],
     'font-src': [
         '\'self\'',
