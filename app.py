@@ -2,7 +2,7 @@
 
 import os
 import base64
-import json # Required for loading credentials from a string
+import json
 from datetime import datetime, timedelta
 import webbrowser
 from threading import Timer
@@ -17,13 +17,10 @@ import requests
 import bleach
 from flask_talisman import Talisman
 
-# Assuming forms.py is in the same directory
 from forms import RegisterForm, LoginForm, OnboardingForm, OnboardingAssessmentForm
 
 # --- Flask App Initialization ---
 app = Flask(__name__)
-# This is the only place the secret key needs to be set.
-# It will be loaded from the Render environment variables.
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 # --- Security Configuration ---
@@ -128,8 +125,6 @@ except Exception as e:
 # --- Google TTS Initialization ---
 tts_client = None
 try:
-    # This part is tricky in production without a file.
-    # For now, we assume it might not be set up and handle it gracefully.
     if os.getenv('GOOGLE_APPLICATION_CREDENTIALS'):
         tts_client = texttospeech.TextToSpeechClient()
         print("Google TTS initialized.")
@@ -191,7 +186,6 @@ def chat():
 @app.route('/register', methods=['GET', 'POST'])
 @csrf.exempt
 def register():
-    # The POST logic is for the API call from JavaScript
     if request.method == 'POST':
         data = request.get_json(force=True)
         if not data:
@@ -221,14 +215,13 @@ def register():
             print(f"Backend registration error: {e}")
             return jsonify({'error': 'An internal error occurred during registration.'}), 500
     
-    # The GET logic is for rendering the page with the WTForm
+    # This now ONLY runs for GET requests, preventing the conflict.
     form = RegisterForm()
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 @csrf.exempt
 def login():
-    # The POST logic is for the API call from JavaScript
     if request.method == 'POST':
         data = request.get_json(force=True)
         if not data:
@@ -262,7 +255,7 @@ def login():
             print(f"Firebase ID token verification error: {e}")
             return jsonify({"error": "An internal authentication error occurred."}), 500
 
-    # The GET logic is for rendering the page with the WTForm
+    # This now ONLY runs for GET requests, preventing the conflict.
     form = LoginForm()
     return render_template('login.html', form=form)
 
