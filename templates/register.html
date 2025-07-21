@@ -1,60 +1,105 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const registerForm = document.getElementById("register-form");
+{% extends 'base.html' %}
+{% block title %}Register - CBT Companion{% endblock %}
 
-    if (!registerForm) {
-        console.error("Register form not found.");
-        return;
-    }
+{% block content %}
+<div class="flex items-center justify-center flex-grow">
+    <div class="w-full max-w-sm mx-auto bg-white dark:bg-slate-800 p-8 rounded-lg shadow-lg text-center">
+        <h1 class="text-3xl font-bold text-teal-600 dark:text-teal-400 mb-6">Register</h1>
+        <form id="registerForm" class="space-y-4" method="POST" novalidate>
+            {{ form.hidden_tag() }}
 
-    registerForm.addEventListener("submit", async function (event) {
+            <div class="mb-4">
+                <label for="email" class="sr-only">Email Address</label>
+                <input id="email" name="email" type="email" class="w-full p-3 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Email Address" autocomplete="email" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="sr-only">Password</label>
+                {{ form.password(id="password", class_="w-full p-3 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500", placeholder="Password", autocomplete="new-password") }}
+            </div>
+
+            <button type="submit" id="registerButton" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-md shadow-lg">Register</button>
+
+            <div id="loadingIndicator" class="hidden text-center text-teal-500 mt-2">Creating account...</div>
+
+            <div id="firebaseError" class="text-red-500 text-sm mt-2" aria-live="assertive"></div>
+        </form>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mt-4">Already have an account? <a href="{{ url_for('login') }}" class="text-teal-600 hover:underline dark:text-teal-400">Login here</a>.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script>
+    const firebaseConfig = {
+        apiKey: "{{ firebase_client_config.apiKey }}",
+        authDomain: "{{ firebase_client_config.authDomain }}",
+        projectId: "{{ firebase_client_config.projectId }}",
+        storageBucket: "{{ firebase_client_config.storageBucket }}",
+        messagingSenderId: "{{ firebase_client_config.messagingSenderId }}",
+        appId: "{{ firebase_client_config.appId }}"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    document.getElementById('registerForm').addEventListener('submit', async function(event) {
         event.preventDefault();
 
-        const username = document.getElementById("username")?.value.trim();
-        const email = document.getElementById("email")?.value.trim();
-        const password = document.getElementById("password")?.value;
-        const preferredAssistant = document.getElementById("preferred_assistant")?.value;
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
 
-        if (!username || !email || !password || !preferredAssistant) {
-            alert("Please fill in all required fields.");
-            return;
-        }
+        const registerButton = document.getElementById('registerButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const firebaseErrorDiv = document.getElementById('firebaseError');
+
+        firebaseErrorDiv.textContent = '';
+        registerButton.disabled = true;
+        loadingIndicator.classList.remove('hidden');
 
         try {
-            // Firebase registration
-            const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
-
-            if (!user) throw new Error("User registration failed.");
-
             const idToken = await user.getIdToken();
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-            // Send data to Flask backend
-            const response = await fetch("/register", {
-                method: "POST",
+            const response = await fetch("{{ url_for('register') }}", {
+                method: 'POST',
                 headers: {
-                    "Content-Type": "application/json"
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
                 },
-                body: JSON.stringify({
-                    idToken: idToken,
-                    username: username,
-                    preferred_assistant: preferredAssistant,
-                    email: email // Optional: include only if Flask uses it
-                })
+                body: JSON.stringify({ idToken: idToken })
             });
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                const errorMessage = result.error || "Registration failed.";
-                throw new Error(errorMessage);
+            const data = await response.json();
+            if (response.ok) {
+                window.location.href = data.redirect || "{{ url_for('chat') }}";
+            } else {
+                firebaseErrorDiv.textContent = data.error || 'Registration failed on server.';
             }
-
-            alert("Registration successful! Redirecting...");
-            window.location.href = "/onboarding"; // Update if using a different route
-
         } catch (error) {
-            console.error("Error during registration:", error);
-            alert("Error: " + error.message);
+            let errorMessage = "An unexpected error occurred.";
+            switch (error.code) {
+                case 'auth/email-already-in-use':
+                    errorMessage = 'That email address is already registered.';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = 'Please enter a valid email format.';
+                    break;
+                case 'auth/weak-password':
+                    errorMessage = 'Password should be at least 6 characters.';
+                    break;
+                default:
+                    errorMessage = error.message;
+            }
+            firebaseErrorDiv.textContent = errorMessage;
+        } finally {
+            registerButton.disabled = false;
+            loadingIndicator.classList.add('hidden');
         }
     });
-});
+</script>
+{% endblock %}
