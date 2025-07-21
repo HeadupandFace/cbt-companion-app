@@ -1,11 +1,9 @@
 Flask
-Flask-Login
-Flask-WTF
+flask-cors
 gunicorn
 gevent
 firebase-admin
 python-dotenv
 requests
-bleach
 Flask-Talisman
-google-cloud-texttospeech
+google-generativeai
