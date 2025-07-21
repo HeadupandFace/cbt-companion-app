@@ -2,7 +2,7 @@
 
 import os
 import base64
-import json # NEW: Required for loading credentials from a string
+import json # Required for loading credentials from a string
 from datetime import datetime, timedelta
 import webbrowser
 from threading import Timer
@@ -35,20 +35,21 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 csrf = CSRFProtect(app)
 
-# --- Content Security Policy (CSP) for Talisman ---
+# --- CORRECTED: Content Security Policy (CSP) for Talisman ---
+# This tells the browser which external resources are safe to load.
 csp = {
     'default-src': '\'self\'',
     'script-src': [
         '\'self\'',
         'cdn.tailwindcss.com',
-        'www.gstatic.com',
-        '\'unsafe-inline\''
+        'www.gstatic.com', # Required for Firebase
+        '\'unsafe-inline\''  # Allows inline scripts on your pages to run
     ],
     'style-src': [
         '\'self\'',
         'cdn.tailwindcss.com',
         'fonts.googleapis.com',
-        '\'unsafe-inline\''
+        '\'unsafe-inline\''  # Allows inline styles from your base.html
     ],
     'font-src': [
         '\'self\'',
@@ -56,10 +57,11 @@ csp = {
     ],
     'connect-src': [
         '\'self\'',
-        '*.googleapis.com'
+        '*.googleapis.com' # Required for Firebase Auth and TTS
     ]
 }
 
+# Initialize Talisman with the new CSP
 talisman = Talisman(app, content_security_policy=csp)
 
 login_manager = LoginManager()
@@ -129,7 +131,7 @@ try:
             cred = credentials.Certificate(firebase_service_account_path)
             print("Firebase Admin SDK initialized from file path.")
         else:
-            raise ValueError("Firebase credentials not found.")
+            raise ValueError("Firebase credentials not found in environment variable or file path.")
 
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
@@ -264,8 +266,6 @@ def login():
     return render_template('login.html', form=form)
 
 # --- Onboarding and API Routes ---
-# (The rest of your app.py file remains unchanged)
-# ...
 @app.route('/onboarding', methods=['GET', 'POST'])
 @login_required
 def onboarding():
