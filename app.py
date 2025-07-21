@@ -205,8 +205,8 @@ def chat():
 def register():
     form = RegisterForm()
     if request.method == 'POST':
-        # FINAL FIX: Use request.get_json() for robustness
-        data = request.get_json()
+        # FINAL FIX: Use force=True to ignore incorrect Content-Type headers
+        data = request.get_json(force=True)
         if not data:
             return jsonify({'error': 'Invalid request format.'}), 400
 
@@ -239,8 +239,8 @@ def register():
 def login():
     form = LoginForm()
     if request.method == 'POST':
-        # FINAL FIX: Use request.get_json() for robustness
-        data = request.get_json()
+        # FINAL FIX: Use force=True to ignore incorrect Content-Type headers
+        data = request.get_json(force=True)
         if not data:
             return jsonify({'error': 'Invalid request format.'}), 400
             
@@ -297,7 +297,7 @@ def onboarding_consent():
 @app.route('/api/save_consent', methods=['POST'])
 @login_required
 def save_consent():
-    data = request.get_json()
+    data = request.get_json(force=True) # FINAL FIX
     if not data: return jsonify({'error': 'Invalid request format'}), 400
     consent_processing = data.get('consent_processing')
     consent_analytics = data.get('consent_analytics')
@@ -373,7 +373,7 @@ def diary_manager():
             print(f"Error fetching diary entries: {e}")
             return jsonify({'error': 'Could not retrieve diary entries.'}), 500
     if request.method == 'POST':
-        data = request.json
+        data = request.get_json(force=True) # FINAL FIX
         entry_text = bleach.clean(data.get('text', ''))
         entry_date = datetime.now().strftime('%Y-%m-%d')
         try:
@@ -427,7 +427,7 @@ def text_to_ssml_with_pauses(text):
 @app.route('/api/chat', methods=['POST'])
 @login_required
 def chat_api():
-    data = request.get_json()
+    data = request.get_json(force=True) # FINAL FIX
     if not data: return jsonify({'error': 'Invalid request format.'}), 400
     user_message = bleach.clean(data.get('message', ''))
     if not user_message: return jsonify({'error': 'No message provided'}), 400
