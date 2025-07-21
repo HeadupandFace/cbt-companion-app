@@ -2,6 +2,7 @@
 
 import os
 import base64
+import json # NEW: Required for loading credentials from a string
 from datetime import datetime, timedelta
 import webbrowser
 from threading import Timer
@@ -34,21 +35,20 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 csrf = CSRFProtect(app)
 
-# --- CORRECTED: Content Security Policy (CSP) for Talisman ---
-# This tells the browser which external resources are safe to load.
+# --- Content Security Policy (CSP) for Talisman ---
 csp = {
     'default-src': '\'self\'',
     'script-src': [
         '\'self\'',
         'cdn.tailwindcss.com',
-        'www.gstatic.com', # Required for Firebase
-        '\'unsafe-inline\''  # ADDED: Allows inline scripts on your pages to run
+        'www.gstatic.com',
+        '\'unsafe-inline\''
     ],
     'style-src': [
         '\'self\'',
         'cdn.tailwindcss.com',
         'fonts.googleapis.com',
-        '\'unsafe-inline\''  # Allows inline styles from your base.html
+        '\'unsafe-inline\''
     ],
     'font-src': [
         '\'self\'',
@@ -56,11 +56,10 @@ csp = {
     ],
     'connect-src': [
         '\'self\'',
-        '*.googleapis.com' # Required for Firebase Auth and TTS
+        '*.googleapis.com'
     ]
 }
 
-# Initialize Talisman with the new CSP
 talisman = Talisman(app, content_security_policy=csp)
 
 login_manager = LoginManager()
@@ -114,20 +113,31 @@ def load_user(user_id):
         print(f"Error loading user {user_id}: {e}")
         return None
 
-# --- Firebase, TTS, & Executor Initialization ---
-FIREBASE_SERVICE_ACCOUNT_PATH = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
+# --- FINAL FIX: Firebase Initialization for Render ---
 db = None
 try:
-    if FIREBASE_SERVICE_ACCOUNT_PATH and os.path.exists(FIREBASE_SERVICE_ACCOUNT_PATH):
-        cred = credentials.Certificate(FIREBASE_SERVICE_ACCOUNT_PATH)
-        if not firebase_admin._apps:
-            firebase_admin.initialize_app(cred)
-        db = firestore.client()
-        print("Firebase Admin SDK initialized.")
+    # First, try to get the credentials from the environment variable (for Render)
+    firebase_creds_json = os.getenv('FIREBASE_SERVICE_ACCOUNT_JSON')
+    if firebase_creds_json:
+        creds_dict = json.loads(firebase_creds_json)
+        cred = credentials.Certificate(creds_dict)
+        print("Firebase Admin SDK initialized from environment variable.")
     else:
-        print("Firestore service account key missing or path invalid.")
+        # Fallback to the file path (for local development)
+        firebase_service_account_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
+        if firebase_service_account_path and os.path.exists(firebase_service_account_path):
+            cred = credentials.Certificate(firebase_service_account_path)
+            print("Firebase Admin SDK initialized from file path.")
+        else:
+            raise ValueError("Firebase credentials not found.")
+
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
+    db = firestore.client()
+
 except Exception as e:
-    print(f"Firestore init error: {e}")
+    print(f"CRITICAL: Firestore init error: {e}")
+
 
 GOOGLE_APPLICATION_CREDENTIALS_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 tts_client = None
