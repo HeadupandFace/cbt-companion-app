@@ -223,10 +223,10 @@ def chat():
 
 # --- Registration and Login Routes ---
 @app.route('/register', methods=['GET', 'POST'])
+@csrf.exempt
 def register():
     form = RegisterForm()
     if request.method == 'POST':
-        # No longer need force=True because of the before_request fix
         data = request.get_json()
         if not data:
             return jsonify({'error': 'Invalid request format.'}), 400
@@ -257,10 +257,10 @@ def register():
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
+@csrf.exempt
 def login():
     form = LoginForm()
     if request.method == 'POST':
-        # No longer need force=True because of the before_request fix
         data = request.get_json()
         if not data:
             return jsonify({'error': 'Invalid request format.'}), 400
@@ -317,8 +317,8 @@ def onboarding_consent():
 
 @app.route('/api/save_consent', methods=['POST'])
 @login_required
+@csrf.exempt
 def save_consent():
-    # No longer need force=True
     data = request.get_json()
     if not data: return jsonify({'error': 'Invalid request format'}), 400
     consent_processing = data.get('consent_processing')
@@ -384,6 +384,7 @@ def crisis_support():
 
 @app.route('/api/diary', methods=['GET', 'POST'])
 @login_required
+@csrf.exempt
 def diary_manager():
     if not db: return jsonify({'error': 'Database unavailable.'}), 500
     if request.method == 'GET':
@@ -395,7 +396,6 @@ def diary_manager():
             print(f"Error fetching diary entries: {e}")
             return jsonify({'error': 'Could not retrieve diary entries.'}), 500
     if request.method == 'POST':
-        # No longer need force=True
         data = request.get_json()
         entry_text = bleach.clean(data.get('text', ''))
         entry_date = datetime.now().strftime('%Y-%m-%d')
@@ -421,6 +421,7 @@ def get_chat_history():
 
 @app.route('/api/clear_chat_history', methods=['POST'])
 @login_required
+@csrf.exempt
 def clear_chat_history():
     if not db: return jsonify({'error': 'Database service is not available.'}), 503
     try:
@@ -449,8 +450,8 @@ def text_to_ssml_with_pauses(text):
 
 @app.route('/api/chat', methods=['POST'])
 @login_required
+@csrf.exempt
 def chat_api():
-    # No longer need force=True
     data = request.get_json()
     if not data: return jsonify({'error': 'Invalid request format.'}), 400
     user_message = bleach.clean(data.get('message', ''))
