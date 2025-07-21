@@ -1,165 +1,53 @@
-{% extends 'base.html' %}
-{% block title %}Register - CBT Companion{% endblock %}
+document.addEventListener("DOMContentLoaded", function () {
+    const registerForm = document.getElementById("register-form");
 
-{% block content %}
-<div class="flex items-center justify-center flex-grow">
-    <div class="w-full max-w-md mx-auto bg-white dark:bg-slate-800 p-8 rounded-lg shadow-lg text-center">
-        <h1 class="text-3xl font-bold text-teal-600 dark:text-teal-400 mb-6">Register</h1>
-        
-        <form id="registerForm" class="space-y-4" method="POST" novalidate>
-            {{ form.hidden_tag() }}
-            
-            <!-- ACCESSIBILITY: Added a proper, screen-reader-only label -->
-            <div class="mb-4">
-                <label for="username" class="sr-only">Username</label>
-                {{ form.username(id="username", class_="w-full p-3 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500", placeholder="Choose a username") }}
-                {% for error in form.username.errors %}
-                    <p class="text-red-500 text-xs italic text-left mt-1">{{ error }}</p>
-                {% endfor %}
-            </div>
+    if (!registerForm) return;
 
-            <!-- ACCESSIBILITY: Added a proper, screen-reader-only label -->
-            <div class="mb-4">
-                <label for="email" class="sr-only">Email Address</label>
-                {{ form.email(id="email", class_="w-full p-3 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500", placeholder="your.email@example.com") }}
-                {% for error in form.email.errors %}
-                    <p class="text-red-500 text-xs italic text-left mt-1">{{ error }}</p>
-                {% endfor %}
-            </div>
-            
-            <!-- ACCESSIBILITY: Added a proper, screen-reader-only label -->
-            <div class="mb-4">
-                <label for="password" class="sr-only">Password</label>
-                {{ form.password(id="password", class_="w-full p-3 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500", placeholder="Choose a password (min. 6 characters)") }}
-                 {% for error in form.password.errors %}
-                    <p class="text-red-500 text-xs italic text-left mt-1">{{ error }}</p>
-                {% endfor %}
-            </div>
-
-            <!-- ACCESSIBILITY: Added a proper, screen-reader-only label -->
-            <div class="mb-4">
-                <label for="confirm_password" class="sr-only">Confirm Password</label>
-                {{ form.confirm_password(id="confirm_password", class_="w-full p-3 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500", placeholder="Confirm password") }}
-                 {% for error in form.confirm_password.errors %}
-                    <p class="text-red-500 text-xs italic text-left mt-1">{{ error }}</p>
-                {% endfor %}
-            </div>
-
-            <div role="radiogroup" aria-labelledby="assistant-choice-heading">
-                <p id="assistant-choice-heading" class="text-lg font-medium text-slate-700 dark:text-slate-300 mb-3">Who would you like to talk to?</p>
-                <div class="flex justify-center space-x-4">
-                    {% for subfield in form.preferred_assistant %}
-                        <label class="inline-flex items-center cursor-pointer">
-                            {{ subfield(class_="form-radio h-5 w-5 text-teal-600 focus:ring-teal-500 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-900") }}
-                            <span class="ml-2 text-slate-700 dark:text-slate-300">{{ subfield.label.text }}</span>
-                        </label>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <button type="submit" id="registerButton" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-md shadow-lg">Register</button>
-            <div id="loadingIndicator" class="hidden text-center text-teal-500 mt-2">Registering...</div>
-            <!-- ACCESSIBILITY: Added aria-live to announce errors -->
-            <div id="firebaseError" class="text-red-500 text-sm mt-2" aria-live="assertive"></div>
-        </form>
-        
-        <p class="text-sm text-slate-600 dark:text-slate-400 mt-4">Already have an account? <a href="{{ url_for('login') }}" class="text-teal-600 hover:underline dark:text-teal-400">Login here</a>.</p>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-<script>
-    // --- Manually constructing the config object to avoid rendering issues ---
-    const firebaseConfig = {
-        apiKey: "{{ firebase_client_config.apiKey }}",
-        authDomain: "{{ firebase_client_config.authDomain }}",
-        projectId: "{{ firebase_client_config.projectId }}",
-        storageBucket: "{{ firebase_client_config.storageBucket }}",
-        messagingSenderId: "{{ firebase_client_config.messagingSenderId }}",
-        appId: "{{ firebase_client_config.appId }}"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    document.getElementById('registerForm').addEventListener('submit', async function(event) {
+    registerForm.addEventListener("submit", async function (event) {
         event.preventDefault();
-        
-        const emailInput = document.getElementById('email');
-        const email = emailInput.value.trim(); 
-        
-        const usernameInput = document.getElementById('username');
-        const username = usernameInput.value.trim();
 
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirm_password').value;
-        const preferredAssistant = document.querySelector('input[name="preferred_assistant"]:checked').value;
-        
-        const registerButton = document.getElementById('registerButton');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const firebaseErrorDiv = document.getElementById('firebaseError');
-
-        firebaseErrorDiv.textContent = '';
-        registerButton.disabled = true;
-        loadingIndicator.classList.remove('hidden');
-
-        if (password !== confirmPassword) {
-            firebaseErrorDiv.textContent = 'Passwords do not match.';
-            registerButton.disabled = false;
-            loadingIndicator.classList.add('hidden');
-            return;
-        }
-        
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const username = document.getElementById("username").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const preferredAssistant = document.getElementById("preferred_assistant").value;
 
         try {
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            // Create the user using Firebase Authentication
+            const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
+
+            if (!user) throw new Error("Registration failed. No user object returned.");
+
+            // Get Firebase ID token for authentication with Flask
             const idToken = await user.getIdToken();
 
-            const response = await fetch("{{ url_for('register') }}", {
-                method: 'POST',
+            // Send user data to the Flask backend
+            const response = await fetch("/register", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
                     idToken: idToken,
                     username: username,
-                    email: email,
                     preferred_assistant: preferredAssistant
+                    // Optionally include email if Flask route supports it:
+                    // email: email
                 })
             });
 
-            const data = await response.json();
-            if (response.ok) {
-                window.location.href = data.redirect || "{{ url_for('onboarding') }}"; 
-            } else {
-                firebaseErrorDiv.textContent = data.error || 'Registration failed.';
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || "Registration failed.");
             }
+
+            alert("Registration successful! Redirecting to onboarding...");
+            window.location.href = "/onboarding";
+
         } catch (error) {
-            let errorMessage = "An unexpected error occurred.";
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    errorMessage = 'This email address is already in use.';
-                    break;
-                case 'auth/invalid-email':
-                    errorMessage = 'Please enter a valid email address.';
-                    break;
-                case 'auth/weak-password':
-                    errorMessage = 'Password is too weak (min 6 characters).';
-                    break;
-                default:
-                    errorMessage = error.message;
-            }
-            firebaseErrorDiv.textContent = errorMessage;
-        } finally {
-            registerButton.disabled = false;
-            loadingIndicator.classList.add('hidden');
+            console.error("Registration error:", error);
+            alert("Error: " + error.message);
         }
     });
-</script>
-{% endblock %}
+});
