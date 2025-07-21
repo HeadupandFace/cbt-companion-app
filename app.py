@@ -33,7 +33,35 @@ app.config.update(
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 csrf = CSRFProtect(app)
-talisman = Talisman(app)
+
+# --- CORRECTED: Content Security Policy (CSP) for Talisman ---
+# This tells the browser which external resources are safe to load.
+csp = {
+    'default-src': '\'self\'',
+    'script-src': [
+        '\'self\'',
+        'cdn.tailwindcss.com',
+        'www.gstatic.com' # Required for Firebase
+    ],
+    'style-src': [
+        '\'self\'',
+        'cdn.tailwindcss.com',
+        'fonts.googleapis.com',
+        '\'unsafe-inline\''  # ADDED: Allows inline styles from your base.html
+    ],
+    'font-src': [
+        '\'self\'',
+        'fonts.gstatic.com'
+    ],
+    'connect-src': [
+        '\'self\'',
+        '*.googleapis.com' # Required for Firebase Auth and TTS
+    ]
+}
+
+# Initialize Talisman with the new CSP
+talisman = Talisman(app, content_security_policy=csp)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -202,17 +230,15 @@ def login():
             uid = decoded_token['uid']
             user_obj = load_user(uid)
             if user_obj:
-                # --- NEW: Access Control Allowlist Check ---
+                # --- Access Control Allowlist Check ---
                 authorized_emails_str = os.getenv('AUTHORIZED_EMAILS')
                 if authorized_emails_str:
-                    # If the allowlist exists, check the user's email
                     authorized_emails = [email.strip().lower() for email in authorized_emails_str.split(',')]
                     if user_obj.email.lower() not in authorized_emails:
-                        logout_user() # Log them out immediately
+                        logout_user()
                         flash('This account is not authorized to access this application.', 'danger')
-                        return jsonify({"error": "Account not authorized."}), 403 # 403 Forbidden
+                        return jsonify({"error": "Account not authorized."}), 403
 
-                # If the check passes (or no list exists), log the user in
                 login_user(user_obj)
                 user_doc = db.collection('users').document(uid).get()
                 if user_doc.exists and user_doc.to_dict().get('onboarding_complete'):
@@ -227,7 +253,7 @@ def login():
     return render_template('login.html', form=form)
 
 # --- Onboarding and API Routes ---
-# (The rest of your app.py file remains unchanged as it is already well-structured and secure)
+# (The rest of your app.py file remains unchanged)
 # ...
 @app.route('/onboarding', methods=['GET', 'POST'])
 @login_required
