@@ -66,29 +66,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# --- THE DEFINITIVE FIX for "Unsupported Media Type" ---
-# This function runs before every request. It checks if the request is going to
-# an endpoint that expects JSON and fixes the Content-Type header if it's wrong.
-# This ensures that Flask and its extensions process the request correctly.
-@app.before_request
-def fix_json_content_type():
-    # List of endpoint paths that expect JSON data
-    json_endpoints = ['/api/', '/login', '/register']
-    # Check if the request path starts with any of the specified endpoint prefixes
-    if any(request.path.startswith(p) for p in json_endpoints):
-        # If the content type is not 'application/json', we attempt to fix it.
-        if request.mimetype != 'application/json':
-            try:
-                # Try to parse the raw data as JSON to confirm it's valid
-                json.loads(request.get_data())
-                # If it's valid JSON, force the mimetype to be correct for Flask
-                request.environ['CONTENT_TYPE'] = 'application/json'
-                print(f"INFO: Corrected Content-Type to application/json for path: {request.path}")
-            except (json.JSONDecodeError, UnicodeDecodeError):
-                # If data is not valid JSON, do nothing and let the route handle the error.
-                print(f"WARNING: Received non-JSON data on a JSON endpoint: {request.path}")
-                pass
-
+# --- REMOVED: The @before_request hook is removed in favor of a more direct fix. ---
+# Using `force=True` in each route is more reliable across different server environments.
 
 # --- Clinical Safety: Crisis Keyword Definitions ---
 CRISIS_KEYWORDS = [
@@ -227,7 +206,8 @@ def chat():
 def register():
     form = RegisterForm()
     if request.method == 'POST':
-        data = request.get_json()
+        # FIX: Use force=True to bypass Content-Type check
+        data = request.get_json(force=True)
         if not data:
             return jsonify({'error': 'Invalid request format.'}), 400
 
@@ -261,7 +241,8 @@ def register():
 def login():
     form = LoginForm()
     if request.method == 'POST':
-        data = request.get_json()
+        # FIX: Use force=True to bypass Content-Type check
+        data = request.get_json(force=True)
         if not data:
             return jsonify({'error': 'Invalid request format.'}), 400
             
@@ -319,7 +300,8 @@ def onboarding_consent():
 @login_required
 @csrf.exempt
 def save_consent():
-    data = request.get_json()
+    # FIX: Use force=True
+    data = request.get_json(force=True)
     if not data: return jsonify({'error': 'Invalid request format'}), 400
     consent_processing = data.get('consent_processing')
     consent_analytics = data.get('consent_analytics')
@@ -396,7 +378,8 @@ def diary_manager():
             print(f"Error fetching diary entries: {e}")
             return jsonify({'error': 'Could not retrieve diary entries.'}), 500
     if request.method == 'POST':
-        data = request.get_json()
+        # FIX: Use force=True
+        data = request.get_json(force=True)
         entry_text = bleach.clean(data.get('text', ''))
         entry_date = datetime.now().strftime('%Y-%m-%d')
         try:
@@ -452,7 +435,8 @@ def text_to_ssml_with_pauses(text):
 @login_required
 @csrf.exempt
 def chat_api():
-    data = request.get_json()
+    # FIX: Use force=True
+    data = request.get_json(force=True)
     if not data: return jsonify({'error': 'Invalid request format.'}), 400
     user_message = bleach.clean(data.get('message', ''))
     if not user_message: return jsonify({'error': 'No message provided'}), 400
