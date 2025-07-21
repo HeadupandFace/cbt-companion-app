@@ -1,27 +1,34 @@
 document.addEventListener("DOMContentLoaded", function () {
     const registerForm = document.getElementById("register-form");
 
-    if (!registerForm) return;
+    if (!registerForm) {
+        console.error("Register form not found.");
+        return;
+    }
 
     registerForm.addEventListener("submit", async function (event) {
         event.preventDefault();
 
-        const username = document.getElementById("username").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
-        const preferredAssistant = document.getElementById("preferred_assistant").value;
+        const username = document.getElementById("username")?.value.trim();
+        const email = document.getElementById("email")?.value.trim();
+        const password = document.getElementById("password")?.value;
+        const preferredAssistant = document.getElementById("preferred_assistant")?.value;
+
+        if (!username || !email || !password || !preferredAssistant) {
+            alert("Please fill in all required fields.");
+            return;
+        }
 
         try {
-            // Create the user using Firebase Authentication
+            // Firebase registration
             const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
 
-            if (!user) throw new Error("Registration failed. No user object returned.");
+            if (!user) throw new Error("User registration failed.");
 
-            // Get Firebase ID token for authentication with Flask
             const idToken = await user.getIdToken();
 
-            // Send user data to the Flask backend
+            // Send data to Flask backend
             const response = await fetch("/register", {
                 method: "POST",
                 headers: {
@@ -30,23 +37,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: JSON.stringify({
                     idToken: idToken,
                     username: username,
-                    preferred_assistant: preferredAssistant
-                    // Optionally include email if Flask route supports it:
-                    // email: email
+                    preferred_assistant: preferredAssistant,
+                    email: email // Optional: include only if Flask uses it
                 })
             });
 
             const result = await response.json();
 
             if (!response.ok) {
-                throw new Error(result.error || "Registration failed.");
+                const errorMessage = result.error || "Registration failed.";
+                throw new Error(errorMessage);
             }
 
-            alert("Registration successful! Redirecting to onboarding...");
-            window.location.href = "/onboarding";
+            alert("Registration successful! Redirecting...");
+            window.location.href = "/onboarding"; // Update if using a different route
 
         } catch (error) {
-            console.error("Registration error:", error);
+            console.error("Error during registration:", error);
             alert("Error: " + error.message);
         }
     });
