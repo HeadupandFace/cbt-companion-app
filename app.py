@@ -205,10 +205,15 @@ def chat():
 def register():
     form = RegisterForm()
     if request.method == 'POST':
-        if not request.is_json: return jsonify({'error': 'Invalid request format.'}), 400
-        id_token = request.json.get('idToken')
-        username = bleach.clean(request.json.get('username', '')).strip()
-        assistant = request.json.get('preferred_assistant')
+        # FINAL FIX: Use request.get_json() for robustness
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid request format.'}), 400
+
+        id_token = data.get('idToken')
+        username = bleach.clean(data.get('username', '')).strip()
+        assistant = data.get('preferred_assistant')
+        
         if not all([id_token, username, assistant]): return jsonify({'error': 'Missing required fields.'}), 400
         if not db: return jsonify({'error': 'Database unavailable.'}), 500
         try:
@@ -234,8 +239,12 @@ def register():
 def login():
     form = LoginForm()
     if request.method == 'POST':
-        if not request.is_json: return jsonify({'error': 'Invalid request format.'}), 400
-        id_token = request.json.get('idToken')
+        # FINAL FIX: Use request.get_json() for robustness
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid request format.'}), 400
+            
+        id_token = data.get('idToken')
         if not id_token: return jsonify({"error": "ID token missing"}), 400
         if not db: return jsonify({'error': 'Database unavailable.'}), 500
         try:
@@ -418,7 +427,9 @@ def text_to_ssml_with_pauses(text):
 @app.route('/api/chat', methods=['POST'])
 @login_required
 def chat_api():
-    user_message = bleach.clean(request.json.get('message', ''))
+    data = request.get_json()
+    if not data: return jsonify({'error': 'Invalid request format.'}), 400
+    user_message = bleach.clean(data.get('message', ''))
     if not user_message: return jsonify({'error': 'No message provided'}), 400
     lower_message = user_message.lower()
     if any(keyword in lower_message for keyword in CRISIS_KEYWORDS):
