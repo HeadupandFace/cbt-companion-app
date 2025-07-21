@@ -66,9 +66,29 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# --- REMOVED: The before_request function is no longer needed. ---
-# The `force=True` parameter in `request.get_json()` is a more direct
-# and reliable way to handle incorrect Content-Type headers.
+# --- THE DEFINITIVE FIX for "Unsupported Media Type" ---
+# This function runs before every request. It checks if the request is going to
+# an endpoint that expects JSON and fixes the Content-Type header if it's wrong.
+# This ensures that Flask and its extensions process the request correctly.
+@app.before_request
+def fix_json_content_type():
+    # List of endpoint paths that expect JSON data
+    json_endpoints = ['/api/', '/login', '/register']
+    # Check if the request path starts with any of the specified endpoint prefixes
+    if any(request.path.startswith(p) for p in json_endpoints):
+        # If the content type is not 'application/json', we attempt to fix it.
+        if request.mimetype != 'application/json':
+            try:
+                # Try to parse the raw data as JSON to confirm it's valid
+                json.loads(request.get_data())
+                # If it's valid JSON, force the mimetype to be correct for Flask
+                request.environ['CONTENT_TYPE'] = 'application/json'
+                print(f"INFO: Corrected Content-Type to application/json for path: {request.path}")
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                # If data is not valid JSON, do nothing and let the route handle the error.
+                print(f"WARNING: Received non-JSON data on a JSON endpoint: {request.path}")
+                pass
+
 
 # --- Clinical Safety: Crisis Keyword Definitions ---
 CRISIS_KEYWORDS = [
@@ -206,9 +226,8 @@ def chat():
 def register():
     form = RegisterForm()
     if request.method == 'POST':
-        # FIX: Use force=True to ensure Flask parses the request as JSON
-        # regardless of the Content-Type header sent by the browser.
-        data = request.get_json(force=True)
+        # No longer need force=True because of the before_request fix
+        data = request.get_json()
         if not data:
             return jsonify({'error': 'Invalid request format.'}), 400
 
@@ -241,9 +260,8 @@ def register():
 def login():
     form = LoginForm()
     if request.method == 'POST':
-        # FIX: Use force=True to ensure Flask parses the request as JSON
-        # regardless of the Content-Type header sent by the browser.
-        data = request.get_json(force=True)
+        # No longer need force=True because of the before_request fix
+        data = request.get_json()
         if not data:
             return jsonify({'error': 'Invalid request format.'}), 400
             
@@ -300,8 +318,8 @@ def onboarding_consent():
 @app.route('/api/save_consent', methods=['POST'])
 @login_required
 def save_consent():
-    # FIX: Use force=True
-    data = request.get_json(force=True)
+    # No longer need force=True
+    data = request.get_json()
     if not data: return jsonify({'error': 'Invalid request format'}), 400
     consent_processing = data.get('consent_processing')
     consent_analytics = data.get('consent_analytics')
@@ -377,8 +395,8 @@ def diary_manager():
             print(f"Error fetching diary entries: {e}")
             return jsonify({'error': 'Could not retrieve diary entries.'}), 500
     if request.method == 'POST':
-        # FIX: Use force=True
-        data = request.get_json(force=True)
+        # No longer need force=True
+        data = request.get_json()
         entry_text = bleach.clean(data.get('text', ''))
         entry_date = datetime.now().strftime('%Y-%m-%d')
         try:
@@ -432,8 +450,8 @@ def text_to_ssml_with_pauses(text):
 @app.route('/api/chat', methods=['POST'])
 @login_required
 def chat_api():
-    # FIX: Use force=True
-    data = request.get_json(force=True)
+    # No longer need force=True
+    data = request.get_json()
     if not data: return jsonify({'error': 'Invalid request format.'}), 400
     user_message = bleach.clean(data.get('message', ''))
     if not user_message: return jsonify({'error': 'No message provided'}), 400
