@@ -243,7 +243,8 @@ def login():
         try:
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token['uid']
-            user_obj = load_.user(uid)
+            # FIX: Corrected the typo from load_.user to load_user
+            user_obj = load_user(uid)
             if user_obj:
                 authorized_emails_str = os.getenv('AUTHORIZED_EMAILS')
                 if authorized_emails_str:
