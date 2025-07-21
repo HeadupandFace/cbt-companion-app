@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from google.cloud import texttospeech
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
-from dotenv import load_dotenv
+# REMOVED: The python-dotenv import is no longer needed
 import requests
 import bleach
 from flask_talisman import Talisman
@@ -22,9 +22,10 @@ from flask_talisman import Talisman
 from forms import RegisterForm, LoginForm, OnboardingForm, OnboardingAssessmentForm
 
 # --- Load Environment Variables & Flask App Initialization ---
-load_dotenv()
+# REMOVED: load_dotenv() is removed to prevent conflicts in production.
+# The app will now ONLY use environment variables provided by the Render platform.
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", 'a-very-long-and-random-secret-key-for-dev')
+app.secret_key = os.getenv("FLASK_SECRET_KEY") # No fallback needed in production
 
 # --- SECURITY: Secure Session Cookie Configuration ---
 app.config.update(
@@ -123,12 +124,7 @@ try:
         cred = credentials.Certificate(creds_dict)
         print("Firebase Admin SDK initialized from environment variable.")
     else:
-        firebase_service_account_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
-        if firebase_service_account_path and os.path.exists(firebase_service_account_path):
-            cred = credentials.Certificate(firebase_service_account_path)
-            print("Firebase Admin SDK initialized from file path.")
-        else:
-            raise ValueError("Firebase credentials not found in environment variable or file path.")
+        raise ValueError("Firebase credentials not found in environment variable.")
 
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
@@ -145,7 +141,7 @@ try:
         tts_client = texttospeech.TextToSpeechClient()
         print("Google TTS initialized.")
     else:
-        print("TTS credentials not set or path invalid.")
+        print("TTS credentials not set or path invalid. This is expected in production.")
 except Exception as e:
     print(f"TTS init error: {e}")
 
@@ -203,7 +199,6 @@ def chat():
 def register():
     form = RegisterForm()
     if request.method == 'POST':
-        # FIX: Use force=True to bypass Content-Type check
         data = request.get_json(force=True)
         if not data:
             return jsonify({'error': 'Invalid request format.'}), 400
@@ -238,7 +233,6 @@ def register():
 def login():
     form = LoginForm()
     if request.method == 'POST':
-        # FIX: Use force=True to bypass Content-Type check
         data = request.get_json(force=True)
         if not data:
             return jsonify({'error': 'Invalid request format.'}), 400
@@ -249,9 +243,8 @@ def login():
         try:
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token['uid']
-            user_obj = load_user(uid)
+            user_obj = load_.user(uid)
             if user_obj:
-                # Optional: Check for authorized emails if env var is set
                 authorized_emails_str = os.getenv('AUTHORIZED_EMAILS')
                 if authorized_emails_str:
                     authorized_emails = [email.strip().lower() for email in authorized_emails_str.split(',')]
@@ -297,7 +290,6 @@ def onboarding_consent():
 @login_required
 @csrf.exempt
 def save_consent():
-    # FIX: Use force=True
     data = request.get_json(force=True)
     if not data: return jsonify({'error': 'Invalid request format'}), 400
     consent_processing = data.get('consent_processing')
@@ -375,7 +367,6 @@ def diary_manager():
             print(f"Error fetching diary entries: {e}")
             return jsonify({'error': 'Could not retrieve diary entries.'}), 500
     if request.method == 'POST':
-        # FIX: Use force=True
         data = request.get_json(force=True)
         entry_text = bleach.clean(data.get('text', ''))
         entry_date = datetime.now().strftime('%Y-%m-%d')
@@ -432,7 +423,6 @@ def text_to_ssml_with_pauses(text):
 @login_required
 @csrf.exempt
 def chat_api():
-    # FIX: Use force=True
     data = request.get_json(force=True)
     if not data: return jsonify({'error': 'Invalid request format.'}), 400
     user_message = bleach.clean(data.get('message', ''))
