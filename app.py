@@ -13,7 +13,6 @@ from concurrent.futures import ThreadPoolExecutor
 from google.cloud import texttospeech
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
-# REMOVED: The python-dotenv import is no longer needed
 import requests
 import bleach
 from flask_talisman import Talisman
@@ -21,34 +20,19 @@ from flask_talisman import Talisman
 # Assuming forms.py is in the same directory
 from forms import RegisterForm, LoginForm, OnboardingForm, OnboardingAssessmentForm
 
-# --- Load Environment Variables & Flask App Initialization ---
-# REMOVED: load_dotenv() is removed to prevent conflicts in production.
-# The app will now ONLY use environment variables provided by the Render platform.
+# --- Flask App Initialization ---
 app = Flask(__name__)
+# This is the only place the secret key needs to be set.
+# It will be loaded from the Render environment variables.
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
-# --- DIAGNOSTIC STEP ---
-# Let's print the key to the logs to confirm it's being loaded.
-SECRET_KEY_FROM_ENV = os.getenv("FLASK_SECRET_KEY")
-print(f"--- SECRET KEY DIAGNOSTIC ---")
-if SECRET_KEY_FROM_ENV:
-    print(f"Flask Secret Key was FOUND in environment variables.")
-    # To avoid printing the actual key, let's just print its length
-    print(f"Length of the key is: {len(SECRET_KEY_FROM_ENV)}")
-else:
-    print(f"Flask Secret Key was NOT FOUND in environment variables.")
-print(f"---------------------------")
-app.secret_key = SECRET_KEY_FROM_ENV
-
-# --- SECURITY: Secure Session Cookie Configuration ---
+# --- Security Configuration ---
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
 )
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-
 csrf = CSRFProtect(app)
-
-# --- CORRECTED: Content Security Policy (CSP) for Talisman ---
 csp = {
     'default-src': '\'self\'',
     'script-src': [
@@ -72,20 +56,19 @@ csp = {
         '*.googleapis.com'
     ]
 }
-
 talisman = Talisman(app, content_security_policy=csp)
 
+# --- Login Manager Setup ---
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# --- Clinical Safety: Crisis Keyword Definitions ---
+# --- Clinical Safety Definitions ---
 CRISIS_KEYWORDS = [
     'kill myself', 'suicide', 'overdose', 'end my life', 'want to die',
     'hang myself', 'can\'t go on', 'no reason to live', 'self harm',
     'self-harm', 'ending it all', 'jump off a bridge', 'slit my wrists'
 ]
-
 
 # --- User Class & User Loader ---
 class User(UserMixin):
@@ -97,7 +80,6 @@ class User(UserMixin):
         self.display_name = display_name if display_name else username
         self.consent_for_processing = consent_for_processing
         self.consent_for_analytics = consent_for_analytics
-
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -117,7 +99,6 @@ def load_user(user_id):
                 consent_for_analytics=user_data.get('consent_for_anonymised_analytics', False)
             )
         else:
-            # Fallback for users who exist in Auth but not Firestore yet
             return User(
                 uid=firebase_auth_user.uid,
                 email=firebase_auth_user.email,
@@ -127,7 +108,7 @@ def load_user(user_id):
         print(f"Error loading user {user_id}: {e}")
         return None
 
-# --- Firebase Initialization for Render ---
+# --- Firebase Initialization ---
 db = None
 try:
     firebase_creds_json = os.getenv('FIREBASE_SERVICE_ACCOUNT_JSON')
@@ -141,22 +122,23 @@ try:
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
     db = firestore.client()
-
 except Exception as e:
     print(f"CRITICAL: Firestore init error: {e}")
 
-
-GOOGLE_APPLICATION_CREDENTIALS_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+# --- Google TTS Initialization ---
 tts_client = None
 try:
-    if GOOGLE_APPLICATION_CREDENTIALS_PATH and os.path.exists(GOOGLE_APPLICATION_CREDENTIALS_PATH):
+    # This part is tricky in production without a file.
+    # For now, we assume it might not be set up and handle it gracefully.
+    if os.getenv('GOOGLE_APPLICATION_CREDENTIALS'):
         tts_client = texttospeech.TextToSpeechClient()
         print("Google TTS initialized.")
     else:
-        print("TTS credentials not set or path invalid. This is expected in production.")
+        print("TTS credentials not set. This is expected if not configured.")
 except Exception as e:
     print(f"TTS init error: {e}")
 
+# --- Background Task Executor ---
 executor = ThreadPoolExecutor(max_workers=4)
 
 def _update_user_profile_in_firestore(uid, user_data):
@@ -209,7 +191,7 @@ def chat():
 @app.route('/register', methods=['GET', 'POST'])
 @csrf.exempt
 def register():
-    form = RegisterForm()
+    # The POST logic is for the API call from JavaScript
     if request.method == 'POST':
         data = request.get_json(force=True)
         if not data:
@@ -238,12 +220,15 @@ def register():
         except Exception as e:
             print(f"Backend registration error: {e}")
             return jsonify({'error': 'An internal error occurred during registration.'}), 500
+    
+    # The GET logic is for rendering the page with the WTForm
+    form = RegisterForm()
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 @csrf.exempt
 def login():
-    form = LoginForm()
+    # The POST logic is for the API call from JavaScript
     if request.method == 'POST':
         data = request.get_json(force=True)
         if not data:
@@ -255,7 +240,6 @@ def login():
         try:
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token['uid']
-            # FIX: Corrected the typo from load_.user to load_user
             user_obj = load_user(uid)
             if user_obj:
                 authorized_emails_str = os.getenv('AUTHORIZED_EMAILS')
@@ -277,6 +261,9 @@ def login():
         except Exception as e:
             print(f"Firebase ID token verification error: {e}")
             return jsonify({"error": "An internal authentication error occurred."}), 500
+
+    # The GET logic is for rendering the page with the WTForm
+    form = LoginForm()
     return render_template('login.html', form=form)
 
 # --- Onboarding and API Routes ---
@@ -532,10 +519,10 @@ def chat_api():
         return jsonify({'error': 'An unexpected error occurred with the AI assistant.'}), 500
 
 
-# --- SCRIPT EXECUTION BLOCK ---
-def open_browser():
-    webbrowser.open_new('http://127.0.0.1:5001')
-
+# --- SCRIPT EXECUTION BLOCK (for local development) ---
 if __name__ == '__main__':
+    # This block is not used by Gunicorn in production
+    def open_browser():
+        webbrowser.open_new('http://127.0.0.1:5001')
     Timer(1, open_browser).start()
     app.run(debug=True, port=5001, use_reloader=False)
