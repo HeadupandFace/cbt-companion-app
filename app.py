@@ -25,7 +25,19 @@ from forms import RegisterForm, LoginForm, OnboardingForm, OnboardingAssessmentF
 # REMOVED: load_dotenv() is removed to prevent conflicts in production.
 # The app will now ONLY use environment variables provided by the Render platform.
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY") # No fallback needed in production
+
+# --- DIAGNOSTIC STEP ---
+# Let's print the key to the logs to confirm it's being loaded.
+SECRET_KEY_FROM_ENV = os.getenv("FLASK_SECRET_KEY")
+print(f"--- SECRET KEY DIAGNOSTIC ---")
+if SECRET_KEY_FROM_ENV:
+    print(f"Flask Secret Key was FOUND in environment variables.")
+    # To avoid printing the actual key, let's just print its length
+    print(f"Length of the key is: {len(SECRET_KEY_FROM_ENV)}")
+else:
+    print(f"Flask Secret Key was NOT FOUND in environment variables.")
+print(f"---------------------------")
+app.secret_key = SECRET_KEY_FROM_ENV
 
 # --- SECURITY: Secure Session Cookie Configuration ---
 app.config.update(
