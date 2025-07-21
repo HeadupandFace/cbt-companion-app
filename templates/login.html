@@ -8,24 +8,20 @@
         <form id="loginForm" class="space-y-4" method="POST" novalidate>
             {{ form.hidden_tag() }}
 
-            <!-- ACCESSIBILITY: Added a proper, screen-reader-only label -->
             <div class="mb-4">
                 <label for="email" class="sr-only">Email Address</label>
-                <!-- MODIFIED: Changed from username to email to match registration logic -->
                 <input id="email" name="email" type="email" class="w-full p-3 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Email Address" autocomplete="email" required>
             </div>
 
-            <!-- ACCESSIBILITY: Added a proper, screen-reader-only label -->
             <div class="mb-4">
                 <label for="password" class="sr-only">Password</label>
                 {{ form.password(id="password", class_="w-full p-3 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500", placeholder="Password", autocomplete="current-password") }}
             </div>
-            
+
             <button type="submit" id="loginButton" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-md shadow-lg">Login</button>
-            
+
             <div id="loadingIndicator" class="hidden text-center text-teal-500 mt-2">Logging in...</div>
-            
-            <!-- ACCESSIBILITY: Added aria-live to announce errors -->
+
             <div id="firebaseError" class="text-red-500 text-sm mt-2" aria-live="assertive"></div>
         </form>
         <p class="text-sm text-slate-600 dark:text-slate-400 mt-4">Don't have an account? <a href="{{ url_for('register') }}" class="text-teal-600 hover:underline dark:text-teal-400">Register here</a>.</p>
@@ -37,7 +33,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script>
-    // --- FIXED: Manually constructing the config object to prevent rendering errors ---
     const firebaseConfig = {
         apiKey: "{{ firebase_client_config.apiKey }}",
         authDomain: "{{ firebase_client_config.authDomain }}",
@@ -46,19 +41,15 @@
         messagingSenderId: "{{ firebase_client_config.messagingSenderId }}",
         appId: "{{ firebase_client_config.appId }}"
     };
-    
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
     document.getElementById('loginForm').addEventListener('submit', async function(event) {
         event.preventDefault();
-        
-        // --- CORRECTED LOGIC ---
-        // Now correctly gets the email directly from the email input field.
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
 
         const loginButton = document.getElementById('loginButton');
         const loadingIndicator = document.getElementById('loadingIndicator');
